@@ -9,21 +9,17 @@ class TaskController extends Controller
 {
     public function index()
     {
-        // ambil semua, urut berdasarkan order_index
         $tasks = Task::orderBy('order_index')->get();
 
-        // statistik untuk dashboard
         $total = $tasks->count();
         $done = $tasks->where('is_done', true)->count();
         $pending = $total - $done;
 
-        // data chart (label dan data)
         $chart = [
-            'labels' => ['Selesai', 'Belum Selesai'],
+            'labels' => ['Done', 'Not Yet'],
             'data' => [$done, $pending],
         ];
 
-        // kategori list
         $categories = $tasks->pluck('category')->unique()->filter()->values();
 
         return view('tasks.index', compact('tasks', 'total', 'done', 'pending', 'chart', 'categories'));
@@ -35,7 +31,6 @@ class TaskController extends Controller
             'name' => 'required|string|max:255',
         ]);
 
-        // set order_index ke akhir
         $maxOrder = Task::max('order_index') ?? 0;
 
         Task::create([
@@ -49,9 +44,35 @@ class TaskController extends Controller
         return redirect()->back();
     }
 
+    // ⬇️ FITUR EDIT
+    public function edit(Task $task)
+    {
+        return view('tasks.edit', compact('task'));
+    }
+
+    // ⬇️ UPDATE DATA (bukan toggle)
+    public function editUpdate(Request $request, Task $task)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'priority' => 'nullable|integer',
+            'date' => 'nullable|date',
+            'category' => 'nullable|string',
+        ]);
+
+        $task->update([
+            'name' => $request->name,
+            'priority' => $request->priority,
+            'date' => $request->date,
+            'category' => $request->category,
+        ]);
+
+        return redirect('/')->with('success', 'Task berhasil diupdate!');
+    }
+
+    // toggle selesai
     public function update(Request $request, Task $task)
     {
-        // toggle selesai
         $task->update([
             'is_done' => !$task->is_done,
         ]);
@@ -65,10 +86,9 @@ class TaskController extends Controller
         return redirect()->back();
     }
 
-    // route untuk menyimpan urutan setelah drag & drop
     public function reorder(Request $request)
     {
-        $ordered = $request->input('ordered'); // array of ids in order
+        $ordered = $request->input('ordered');
         if (is_array($ordered)) {
             foreach ($ordered as $index => $id) {
                 Task::where('id', $id)->update(['order_index' => $index]);

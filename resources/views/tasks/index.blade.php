@@ -79,11 +79,9 @@
       width:44px; height:44px; border-radius:50%; object-fit:cover; box-shadow:0 6px 18px rgba(0,0,0,0.12)
     }
 
-    /* subtle animations */
     .fade-in { animation: fadeIn .5s ease both; }
     @keyframes fadeIn { from { opacity:0; transform: translateY(6px);} to { opacity:1; transform:none; } }
 
-    /* responsive */
     @media (max-width: 720px) {
       .desktop-only { display: none; }
     }
@@ -96,7 +94,7 @@
   <div class="container-fluid">
     <a class="navbar-brand d-flex align-items-center gap-2" href="#">
       <i class="fa-solid fa-heart title-gradient fs-4"></i>
-      <span class="title-gradient fs-5">Tiara To-Do</span>
+      <span class="title-gradient fs-5">Tiara To-Do-List</span>
     </a>
 
     <div class="d-flex align-items-center gap-3">
@@ -106,32 +104,32 @@
       </button>
 
       <!-- avatar -->
-      <img src="/myproject/public/profile/tiara.jpg" class="avatar"
-    alt="Tiara"
-    class="avatar"
-    style="width:44px;height:44px;border-radius:50%;object-fit:cover;box-shadow:0 6px 18px rgba(0,0,0,0.15);"
-/>
+      <img src="{{ asset('images/tiara.jpg') }}" alt="profile"
+           class="avatar"
+           alt="Tiara"
+           style="width:44px;height:44px;border-radius:50%;object-fit:cover;">
     </div>
   </div>
 </nav>
 
 <div class="container">
   <div class="row g-4">
-    <!-- left: main -->
+
+    <!-- LEFT: MAIN -->
     <div class="col-lg-8">
       <div class="card p-4 fade-in mb-3">
         <div class="d-flex justify-content-between align-items-center mb-3">
-          <h5 class="mb-0"><i class="fa-solid fa-plus"></i> Tambah Tugas</h5>
+          <h5 class="mb-0"><i class="fa-solid fa-plus"></i> Add Tasks</h5>
           <small class="text-muted">Aesthetic Edition</small>
         </div>
 
         <form action="{{ route('tasks.store') }}" method="POST" class="row g-2 align-items-center">
           @csrf
           <div class="col-md-6">
-            <input type="text" name="name" class="form-control" placeholder="Nama tugas..." required>
+            <input type="text" name="name" class="form-control" placeholder="Task Name..." required>
           </div>
           <div class="col-md-3">
-            <input type="number" name="priority" class="form-control" placeholder="Prioritas (1-5)">
+            <input type="number" name="priority" class="form-control" placeholder="Priority (1-5)">
           </div>
           <div class="col-md-3">
             <input type="date" name="date" class="form-control">
@@ -139,26 +137,26 @@
 
           <div class="col-md-6">
             <select name="category" class="form-select">
-              <option value="">Pilih Kategori (opsional)</option>
-              <option value="Sekolah">Sekolah</option>
-              <option value="Rumah">Rumah</option>
-              <option value="Pribadi">Pribadi</option>
-              <option value="Lainnya">Lainnya</option>
+              <option value="">Select Category (optional)</option>
+              <option value="School">School</option>
+              <option value="Home">Home</option>
+              <option value="Personal">Personal</option>
+              <option value="The Other">The Other</option>
             </select>
           </div>
 
           <div class="col-12 text-end">
-            <button class="btn btn-primary btn-custom"><i class="fa-solid fa-check"></i> Tambah</button>
+            <button class="btn btn-primary btn-custom"><i class="fa-solid fa-check"></i> Add</button>
           </div>
         </form>
       </div>
 
       <div class="card p-3 fade-in">
         <div class="d-flex justify-content-between align-items-center mb-3">
-          <h5 class="mb-0"><i class="fa-solid fa-list-check"></i> Daftar Tugas</h5>
+          <h5 class="mb-0"><i class="fa-solid fa-list-check"></i> Task List</h5>
           <div class="d-flex gap-2">
             <select id="filterCategory" class="form-select form-select-sm">
-              <option value="">Filter: Semua Kategori</option>
+              <option value="">Filter: All Categories</option>
               @foreach($categories as $cat)
                 <option value="{{ $cat }}">{{ $cat }}</option>
               @endforeach
@@ -169,45 +167,63 @@
 
         <ul id="taskList" class="list-group" style="min-height:80px;">
           @foreach ($tasks as $task)
-            <li class="list-group-item d-flex justify-content-between align-items-center" data-id="{{ $task->id }}" data-cat="{{ $task->category }}">
+            <li class="list-group-item d-flex justify-content-between align-items-center" 
+                data-id="{{ $task->id }}" 
+                data-cat="{{ $task->category }}">
+
               <div>
                 <div class="{{ $task->is_done ? 'task-done' : '' }}">
                   <strong>{{ $task->name }}</strong>
                   <div class="small text-muted">
-                    <span class="cute-badge">{{ $task->category ?? 'Tanpa Kategori' }}</span>
-                    &nbsp; • &nbsp; Prioritas: {{ $task->priority }}
-                    &nbsp; • &nbsp; {{ $task->date ?? 'Tidak ada tanggal' }}
+                    <span class="cute-badge">{{ $task->category ?? 'Whithout Category' }}</span>
+                    &nbsp; • &nbsp; Priority: {{ $task->priority }}
+                    &nbsp; • &nbsp; {{ $task->date ?? 'There Is No Date' }}
                   </div>
                 </div>
               </div>
 
               <div class="d-flex gap-2">
+
+                <!-- DONE BUTTON -->
                 <form action="{{ route('tasks.update', $task) }}" method="POST" class="m-0">
-                  @csrf @method('PUT')
-                  <button class="btn btn-success btn-sm btn-custom" title="Tandai selesai">
+                  @csrf 
+                  @method('PUT')
+                  <button class="btn btn-success btn-sm btn-custom" title="Mark It's Done">
                     <i class="fa-solid fa-check"></i>
                   </button>
                 </form>
 
-                <button class="btn btn-danger btn-sm btn-custom btn-delete" data-id="{{ $task->id }}" title="Hapus">
+                <!-- ⭐⭐⭐ BUTTON EDIT (DITAMBAHKAN) ⭐⭐⭐ -->
+                <a href="{{ route('tasks.edit', $task->id) }}" 
+                   class="btn btn-warning btn-sm btn-custom" 
+                   title="Edit Task">
+                  <i class="fa-solid fa-pen"></i>
+                </a>
+                <!-- END EDIT -->
+
+                <!-- DELETE BUTTON -->
+                <button class="btn btn-danger btn-sm btn-custom btn-delete" 
+                        data-id="{{ $task->id }}" 
+                        title="Delet">
                   <i class="fa-solid fa-trash"></i>
                 </button>
+
               </div>
             </li>
           @endforeach
         </ul>
 
-        <div class="text-muted mt-2"><small>Tarik & lepaskan tugas untuk mengurutkan (drag & drop).</small></div>
+        <div class="text-muted mt-2"><small>Drag & Drop Task To Sort (drag & drop).</small></div>
       </div>
     </div>
 
-    <!-- right: dashboard -->
+    <!-- RIGHT: DASHBOARD -->
     <div class="col-lg-4">
       <div class="card p-4 mb-3 fade-in">
         <div class="d-flex align-items-center justify-content-between">
           <div>
-            <h6 class="mb-0 title-gradient">Halo Tiara ✨</h6>
-            <small class="text-muted">Ringkasan tugasmu</small>
+            <h6 class="mb-0 title-gradient">Hallo Tiara ✨</h6>
+            <small class="text-muted">Summary Of Your Assignment</small>
           </div>
           <div class="text-end">
             <div class="fs-6 fw-bold">{{ $total ?? 0 }}</div>
@@ -221,14 +237,14 @@
       </div>
 
       <div class="card p-3 fade-in">
-        <h6 class="mb-2">Statistik Cepat</h6>
+        <h6 class="mb-2">Quick Statistics</h6>
         <div class="d-flex justify-content-between">
           <div>
-            <div class="text-muted small">Selesai</div>
+            <div class="text-muted small">Done</div>
             <div class="fw-bold text-success">{{ $done ?? 0 }}</div>
           </div>
           <div>
-            <div class="text-muted small">Belum</div>
+            <div class="text-muted small">Not Yet</div>
             <div class="fw-bold text-danger">{{ $pending ?? 0 }}</div>
           </div>
         </div>
@@ -236,7 +252,7 @@
 
       <div class="card p-3 mt-3 fade-in">
         <h6 class="mb-2">Tips Aesthetic</h6>
-        <p class="small text-muted mb-0">Gunakan kategori dan tarik tugas ke urutan prioritas untuk efisiensi. Jangan lupa istirahat ya, Tiara 💗</p>
+        <p class="small text-muted mb-0">Use Categories And Drag Task To Priority Order For Efficiency Don't Forget To Take A Break, Tiara Pretty💗</p>
       </div>
     </div>
   </div>
@@ -247,7 +263,6 @@
 
 <!-- Scripts -->
 <script>
-  // theme toggle
   const themeToggle = document.getElementById('themeToggle');
   const themeIcon = document.getElementById('themeIcon');
   const body = document.body;
@@ -264,7 +279,6 @@
     }
   }
 
-  // initialize from cookie (simple)
   (function(){
     const cookieTheme = document.cookie.split('; ').find(r=>r.startsWith('theme='));
     const theme = cookieTheme ? cookieTheme.split('=')[1] : 'light';
@@ -276,20 +290,18 @@
     setTheme(cur === 'dark' ? 'light' : 'dark');
   });
 
-  // SweetAlert delete confirmation
   document.querySelectorAll('.btn-delete').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const id = btn.getAttribute('data-id');
       Swal.fire({
-        title: 'Yakin mau hapus?',
-        text: "Tugas akan dihapus permanen",
+        title: 'Are You Sure Want To Delet It?',
+        text: "The Task Will Be Permanently Deleted!",
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonText: 'Iya, hapus!',
+        confirmButtonText: 'Delet',
         confirmButtonColor: '#d33',
       }).then((result) => {
         if (result.isConfirmed) {
-          // submit form via fetch DELETE
           const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
           fetch(`/tasks/${id}`, {
             method: 'DELETE',
@@ -306,10 +318,9 @@
     });
   });
 
-  // Chart
   const ctx = document.getElementById('taskChart').getContext('2d');
   const chartData = @json($chart['data'] ?? [0,0]);
-  const chartLabels = @json($chart['labels'] ?? ['Selesai','Belum']);
+  const chartLabels = @json($chart['labels'] ?? ['Done','Not Yet']);
   const taskChart = new Chart(ctx, {
     type: 'doughnut',
     data: {
@@ -326,12 +337,10 @@
     }
   });
 
-  // Sortable for drag & drop
   const taskList = document.getElementById('taskList');
   const sortable = Sortable.create(taskList, {
     animation: 150,
     onEnd: function (evt) {
-      // gather ordered ids
       const ordered = Array.from(taskList.querySelectorAll('li')).map(li => li.getAttribute('data-id'));
       const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
       fetch('{{ route("tasks.reorder") }}', {
@@ -343,13 +352,11 @@
         },
         body: JSON.stringify({ ordered })
       }).then(r => r.json()).then(data => {
-        // small feedback
-        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Urutan tersimpan', showConfirmButton: false, timer: 900 });
+        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Saved Order', showConfirmButton: false, timer: 900 });
       });
     }
   });
 
-  // filter by category
   const filter = document.getElementById('filterCategory');
   const clearFilter = document.getElementById('clearFilter');
   filter.addEventListener('change', () => {
@@ -367,7 +374,6 @@
     filter.dispatchEvent(new Event('change'));
   });
 
-  // small entrance animation
   document.querySelectorAll('.fade-in').forEach((el, i) => { el.style.animationDelay = (i*50) + 'ms'; });
 </script>
 
